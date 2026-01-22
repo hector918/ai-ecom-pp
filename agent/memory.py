@@ -1,10 +1,9 @@
-
 class Memory:
     def __init__(self):
         self.steps = []
 
-    def add(self, dom, action):
+    def add(self, dom, action, result=None):
         self.steps.append({
-            "dom": dom,
-            "action": action
+            "action": action,
+            "result": result
         })
