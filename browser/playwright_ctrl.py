@@ -8,13 +8,14 @@ class Browser:
 
     async def start(self, headless=True):
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=True)
+        self.browser = await self.playwright.chromium.launch(headless=headless)
         self.page = await self.browser.new_page()
 
     async def goto(self, url):
         await self.page.goto(url)
 
     async def snapshot(self):
+        # 返回可交互元素
         return await self.page.evaluate("""
         () => {
             const els = [];
@@ -45,7 +46,6 @@ class Browser:
 
     async def execute(self, action):
         t = action.get("action")
-
         if t == "goto":
             await self.goto(action["url"])
         elif t == "click":
@@ -58,5 +58,7 @@ class Browser:
             return await self.extract(action["selector"], action.get("limit", 5))
 
     async def close(self):
-        await self.browser.close()
-        await self.playwright.stop()
+        if self.browser:
+            await self.browser.close()
+        if self.playwright:
+            await self.playwright.stop()

@@ -11,7 +11,7 @@ class Agent:
 
     async def step(self, goal):
         dom = await self.browser.snapshot()
-        action = self.planner.plan(goal, dom)  # LLM 是同步 HTTP，不影响
+        action = self.planner.plan(goal, dom)
         result = await self.executor.run(action)
         self.memory.add(dom, action, result)
 
