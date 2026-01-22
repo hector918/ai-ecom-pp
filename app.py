@@ -4,12 +4,22 @@ from agent.agent import Agent
 
 app = FastAPI()
 
-browser = Browser(headless=True)   # 服务器环境必须 headless
-agent = Agent(browser)
+browser = Browser()
+agent = None
+
+@app.on_event("startup")
+async def startup():
+    global agent
+    await browser.start(headless=True)
+    agent = Agent(browser)
+
+@app.on_event("shutdown")
+async def shutdown():
+    await browser.close()
 
 @app.post("/task/step")
-def step(goal: str):
-    output = agent.step(goal)
+async def step(goal: str):
+    output = await agent.step(goal)
     return {
         "status": "running",
         "data": output

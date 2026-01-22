@@ -9,10 +9,10 @@ class Agent:
         self.executor = Executor(browser)
         self.memory = Memory()
 
-    def step(self, goal):
-        dom = self.browser.snapshot()
-        action = self.planner.plan(goal, dom)
-        result = self.executor.run(action)
+    async def step(self, goal):
+        dom = await self.browser.snapshot()
+        action = self.planner.plan(goal, dom)  # LLM 是同步 HTTP，不影响
+        result = await self.executor.run(action)
         self.memory.add(dom, action, result)
 
         return {

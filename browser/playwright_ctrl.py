@@ -1,17 +1,21 @@
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 
 class Browser:
-    def __init__(self, headless=True):
-        self.p = sync_playwright().start()
-        self.browser = self.p.chromium.launch(headless=headless)
-        self.page = self.browser.new_page()
+    def __init__(self):
+        self.playwright = None
+        self.browser = None
+        self.page = None
 
-    def goto(self, url):
-        self.page.goto(url)
+    async def start(self, headless=True):
+        self.playwright = await async_playwright().start()
+        self.browser = await self.playwright.chromium.launch(headless=headless)
+        self.page = await self.browser.new_page()
 
-    def snapshot(self):
-        # 返回可交互元素
-        return self.page.evaluate("""
+    async def goto(self, url):
+        await self.page.goto(url)
+
+    async def snapshot(self):
+        return await self.page.evaluate("""
         () => {
             const els = [];
             document.querySelectorAll("input, button, a, select").forEach(el => {
@@ -27,9 +31,8 @@ class Browser:
         }
         """)
 
-    def extract(self, selector, limit=5):
-        # 用于真正“抓数据”
-        return self.page.evaluate(f"""
+    async def extract(self, selector, limit=5):
+        return await self.page.evaluate(f"""
         () => {{
             const results = [];
             const nodes = document.querySelectorAll("{selector}");
@@ -40,23 +43,20 @@ class Browser:
         }}
         """)
 
-    def execute(self, action):
+    async def execute(self, action):
         t = action.get("action")
 
         if t == "goto":
-            self.goto(action["url"])
-
+            await self.goto(action["url"])
         elif t == "click":
-            self.page.click(action["selector"])
-
+            await self.page.click(action["selector"])
         elif t == "fill":
-            self.page.fill(action["selector"], action["text"])
-
+            await self.page.fill(action["selector"], action["text"])
         elif t == "press":
-            self.page.press(action["selector"], action["key"])
-
+            await self.page.press(action["selector"], action["key"])
         elif t == "extract":
-            return self.extract(
-                action["selector"],
-                action.get("limit", 5)
-            )
+            return await self.extract(action["selector"], action.get("limit", 5))
+
+    async def close(self):
+        await self.browser.close()
+        await self.playwright.stop()
