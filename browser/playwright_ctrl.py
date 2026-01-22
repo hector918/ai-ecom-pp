@@ -8,7 +8,7 @@ class Browser:
 
     async def start(self, headless=True):
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=headless)
+        self.browser = await self.playwright.chromium.launch(headless=True)
         self.page = await self.browser.new_page()
 
     async def goto(self, url):
